@@ -345,11 +345,13 @@ function Input({
   value,
   onChange,
   type = "text",
+  min,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
+  min?: string;
 }) {
   return (
     <label className="text-sm flex flex-col gap-1">
@@ -359,6 +361,7 @@ function Input({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         type={type}
+        min={min}
       />
     </label>
   );
