@@ -1,65 +1,205 @@
-import Image from "next/image";
+'use client'
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { fetchTimings, SafariTiming, SafariTicket } from "./lib/api";
+import { daysFrom, formatRange, startOfToday } from "./lib/dates";
+import { formatCurrency } from "./lib/format";
+import { useBooking } from "./providers/booking-context";
+
+const ticketCopy = [
+  {
+    title: "Regular",
+    price: "100",
+    description: "Park entry + guided pathway. Good for families.",
+  },
+  {
+    title: "Priority",
+    price: "500",
+    description: "Skip the queue, earlier boarding, premium seating.",
+  },
+];
 
 export default function Home() {
+  const [timings, setTimings] = useState<SafariTiming[]>([]);
+  const [page, setPage] = useState(1);
+  const limit = 9;
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const { updateSelection } = useBooking();
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const start = startOfToday();
+        const end = daysFrom(start, 7);
+        const data = await fetchTimings({ start, end, limit, page });
+        setTimings(data.results);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Unable to load timings.";
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [limit, page]);
+
+  const onSelect = (show: SafariTiming, ticket: SafariTicket) => {
+    updateSelection({
+      showId: show.showId,
+      showTicketId: ticket.showTicketId,
+      ticketType: ticket.ticketKind ?? "regular_ticket",
+      startTime: show.startTime,
+      endTime: show.endTime,
+      price: Number(ticket.price ?? 0),
+      quantity: 1,
+    });
+    router.push("/book");
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="space-y-10">
+      <section className="glass p-6 lg:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="tag">Overview</span>
+              <span className="text-xs text-[--muted] uppercase tracking-[0.14em]">
+                Bandipur National Park
+              </span>
+            </div>
+            <h1 className="text-3xl lg:text-4xl font-semibold leading-tight">
+              Safaris, shows, and seamless ticketing.
+            </h1>
+            <p className="text-[--muted] max-w-2xl">
+              Explore grasslands, teak forests, and wildlife in one pass. Book regular or priority
+              tickets, pick a safari window, and move to payment without friction.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                className="btn text-sm"
+                onClick={() => router.push("/book")}
+              >
+                Start booking
+              </button>
+              <button
+                className="btn btn-secondary text-sm"
+                onClick={() => router.push("/history")}
+              >
+                View history
+              </button>
+            </div>
+          </div>
+          <div className="glass p-4 w-full lg:w-96">
+            <p className="text-xs uppercase tracking-[0.14em] text-[--muted] mb-2">Ticket types</p>
+            <div className="grid gap-3">
+              {ticketCopy.map((ticket) => (
+                <div key={ticket.title} className="p-3 border border-[--stroke] rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">{ticket.title}</h3>
+                    <span className="text-sm text-[--muted]">{formatCurrency(ticket.price)}</span>
+                  </div>
+                  <p className="text-sm text-[--muted] mt-1">{ticket.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <p className="text-xs uppercase tracking-[0.14em] text-[--muted]">Available safaris</p>
+            <h2 className="text-xl font-semibold">Pick a time slot</h2>
+          </div>
+          <div className="text-sm text-[--muted]">
+            Auto-refreshes daily • 7-day window • Live availability
+          </div>
         </div>
-      </main>
+        {loading && (
+          <div className="glass p-6 flex items-center gap-3">
+            <div className="h-4 w-4 rounded-full border-2 border-[--accent] border-t-transparent animate-spin" />
+            <p className="text-sm">Loading timings…</p>
+          </div>
+        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {!loading && !error && (
+          <div className="space-y-3">
+            <div className="grid-auto">
+              {timings.map((show) => (
+                <div key={show.showId} className="glass p-4 flex flex-col gap-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <p className="text-xs text-[--muted] uppercase tracking-[0.12em]">Safari</p>
+                      <p className="font-semibold">{formatRange(show.startTime, show.endTime)}</p>
+                    </div>
+                    <span className="pill px-3 py-1 text-xs">
+                      {new Date(show.startTime).toLocaleDateString(undefined, {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {show.tickets.map((ticket) => (
+                      <div
+                        key={ticket.showTicketId}
+                        className={`p-3 rounded-lg border transition-all ${
+                          ticket.soldOut
+                            ? "border-red-300 bg-red-50 text-red-700"
+                            : "border-[--stroke] bg-[--card] hover:border-[--accent] hover:bg-[--accent-soft] hover:shadow-md"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-semibold capitalize">
+                              {ticket.ticketKind?.replace("_", " ") || "Regular"}
+                            </p>
+                            <p className="text-xs text-[--muted]">
+                              {ticket.remainingTickets} left · {formatCurrency(ticket.price)}
+                            </p>
+                          </div>
+                          <button
+                            disabled={ticket.soldOut}
+                            className="btn text-sm px-3 py-2 disabled:opacity-50"
+                            onClick={() => onSelect(show, ticket)}
+                          >
+                            {ticket.soldOut ? "Sold out" : "Book this"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {timings.length === 0 && (
+                <div className="glass p-6 text-sm text-[--muted]">No safaris in this window.</div>
+              )}
+            </div>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                className="btn btn-secondary text-sm"
+                disabled={page === 1 || loading}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                Previous
+              </button>
+              <button
+                className="btn text-sm disabled:opacity-60"
+                disabled={timings.length < limit || loading}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
