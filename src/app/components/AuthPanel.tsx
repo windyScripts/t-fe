@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { loginUser, registerUser } from "../lib/api";
 import { useBooking } from "../providers/booking-context";
+import Button from "./ui/Button";
 
 type Mode = "login" | "register";
 
@@ -96,13 +97,9 @@ export default function AuthPanel({ title = "Sign in to continue" }: { title?: s
         {error && <p className="text-sm text-red-600">{error}</p>}
         {message && <p className="text-sm text-[--accent]">{message}</p>}
         <div className="flex items-center justify-between gap-2">
-          <button
-            type="submit"
-            disabled={busy}
-            className="btn px-4 py-2 text-sm font-semibold disabled:opacity-60"
-          >
+          <Button type="submit" disabled={busy} size="sm" className="disabled:opacity-60">
             {busy ? "Working..." : mode === "login" ? "Login" : "Create account"}
-          </button>
+          </Button>
           <button
             type="button"
             onClick={() => setMode((m) => (m === "login" ? "register" : "login"))}

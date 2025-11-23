@@ -7,6 +7,7 @@ import { createBooking } from "../lib/api";
 import { formatCurrency } from "../lib/format";
 import { formatRange } from "../lib/dates";
 import { useBooking } from "../providers/booking-context";
+import Button from "../components/ui/Button";
 
 export default function SummaryPage() {
   const router = useRouter();
@@ -150,13 +151,13 @@ export default function SummaryPage() {
               </label>
               {error && <p className="text-sm text-red-600">{error}</p>}
               {message && <p className="text-sm text-[--accent]">{message}</p>}
-              <button
+              <Button
                 type="submit"
-                className="btn w-full font-semibold disabled:opacity-60"
+                className="w-full font-semibold disabled:opacity-60"
                 disabled={missingSelection || !auth.token}
               >
                 Create booking & continue
-              </button>
+              </Button>
             </form>
           </div>
         )}

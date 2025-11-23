@@ -6,6 +6,7 @@ import { initiatePayment, verifyPayment } from "../lib/api";
 import { formatCurrency } from "../lib/format";
 import { formatRange } from "../lib/dates";
 import { PaymentMethod, useBooking } from "../providers/booking-context";
+import Button from "../components/ui/Button";
 
 const methods: { key: PaymentMethod; label: string; hint: string }[] = [
   { key: "upi", label: "UPI", hint: "Instant UPI apps" },
@@ -110,9 +111,9 @@ export default function PaymentPage() {
           ))}
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button className="btn w-full font-semibold" onClick={handlePay}>
+        <Button className="w-full font-semibold" onClick={handlePay}>
           Pay now
-        </button>
+        </Button>
       </div>
 
       <div className="glass p-5 space-y-3">

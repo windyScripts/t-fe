@@ -11,6 +11,8 @@ import {
   BookingRecord,
 } from "../lib/api";
 import { useBooking } from "../providers/booking-context";
+import { DateTimeRow } from "../components/DateTimeParts";
+import Button from "../components/ui/Button";
 
 type PanelState = {
   error: string | null;
@@ -87,28 +89,26 @@ function UserManagement() {
     <div className="glass p-6 space-y-4">
       <Header title="User management" badge="Admin API" />
       <div className="flex items-center gap-2">
-        <button
-          className={`pill px-3 py-2 text-sm font-semibold ${
-            mode === "create" ? "bg-[--accent] text-white" : "bg-[--accent-soft] text-[--accent-strong]"
-          }`}
+        <Button
+          variant={mode === "create" ? "primary" : "secondary"}
+          size="sm"
           onClick={() => {
             setMode("create");
             setPanel(defaultPanel);
           }}
         >
           Create
-        </button>
-        <button
-          className={`pill px-3 py-2 text-sm font-semibold ${
-            mode === "update" ? "bg-[--accent] text-white" : "bg-[--accent-soft] text-[--accent-strong]"
-          }`}
+        </Button>
+        <Button
+          variant={mode === "update" ? "primary" : "secondary"}
+          size="sm"
           onClick={() => {
             setMode("update");
             setPanel(defaultPanel);
           }}
         >
           Update
-        </button>
+        </Button>
       </div>
       {mode === "create" ? (
         <div className="grid gap-3">
@@ -136,9 +136,9 @@ function UserManagement() {
               { label: "Owner", value: "owner" },
             ]}
           />
-          <button className="btn text-sm font-semibold w-fit" onClick={submitCreate}>
+          <Button size="sm" className="font-semibold w-fit" onClick={submitCreate}>
             Create user
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="grid gap-3">
@@ -167,9 +167,9 @@ function UserManagement() {
               { label: "Disabled", value: "false" },
             ]}
           />
-          <button className="btn text-sm font-semibold w-fit" onClick={submitUpdate}>
+          <Button size="sm" className="font-semibold w-fit" onClick={submitUpdate}>
             Update user
-          </button>
+          </Button>
         </div>
       )}
       <PanelStatus panel={panel} />
@@ -257,9 +257,9 @@ function ShowCreator() {
           </div>
         ))}
       </div>
-      <button className="btn text-sm font-semibold w-fit" onClick={submit}>
+      <Button size="sm" className="font-semibold w-fit" onClick={submit}>
         Create show
-      </button>
+      </Button>
       <PanelStatus panel={panel} />
     </div>
   );
@@ -305,9 +305,9 @@ function BookingLookup() {
       <Header title="Booking lookup" badge="Admin API" />
       <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
         <Input label="User email" value={email} onChange={setEmail} />
-        <button className="btn text-sm font-semibold h-fit" onClick={lookup}>
+        <Button size="sm" className="font-semibold h-fit" onClick={lookup}>
           Fetch
-        </button>
+        </Button>
       </div>
       <PanelStatus panel={panel} />
       <div className="grid-auto">
@@ -393,111 +393,6 @@ function Select({
         ))}
       </select>
     </label>
-  );
-}
-
-function DateTimeRow({
-  label,
-  value,
-  onChange,
-  min,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  min?: string;
-}) {
-  const datePart = value ? value.slice(0, 10) : "";
-  const timePart = value ? value.slice(11, 16) : "";
-  const [localDate, setLocalDate] = useState(datePart);
-  const [localTime, setLocalTime] = useState(timePart);
-
-  const emitIfComplete = (nextDate: string, nextTime: string) => {
-    if (nextDate && nextTime) {
-      const iso = `${nextDate}T${nextTime}:00`;
-      onChange(iso);
-    } else {
-      onChange("");
-    }
-  };
-
-  return (
-    <div className="grid gap-2 sm:grid-cols-2">
-      <Input
-        label={`${label} date`}
-        type="date"
-        value={localDate}
-        onChange={(v) => {
-          setLocalDate(v);
-          emitIfComplete(v, localTime);
-        }}
-        min={min}
-      />
-      <TimeSelect
-        label={`${label} time`}
-        value={localTime}
-        onChange={(v) => {
-          setLocalTime(v);
-          emitIfComplete(localDate, v);
-        }}
-      />
-    </div>
-  );
-}
-
-function TimeSelect({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  const minutes = ["00", "15", "30", "45"];
-  const hours = Array.from({ length: 24 }, (_, idx) => String(idx).padStart(2, "0"));
-  const hourPart = value ? value.slice(0, 2) : "";
-  const minutePart = value ? value.slice(3, 5) : "";
-
-  const handleHour = (h: string) => {
-    const next = `${h}:${minutePart || "00"}`;
-    onChange(next);
-  };
-  const handleMinute = (m: string) => {
-    const next = `${hourPart || "00"}:${m}`;
-    onChange(next);
-  };
-
-  return (
-    <div className="grid gap-2">
-      <span className="text-sm text-[--muted]">{label}</span>
-      <div className="grid grid-cols-2 gap-2">
-        <select
-          className="glass px-3 py-2 focus-ring"
-          value={hourPart}
-          onChange={(e) => handleHour(e.target.value)}
-        >
-          <option value="">HH</option>
-          {hours.map((h) => (
-            <option key={h} value={h}>
-              {h}
-            </option>
-          ))}
-        </select>
-        <select
-          className="glass px-3 py-2 focus-ring"
-          value={minutePart}
-          onChange={(e) => handleMinute(e.target.value)}
-        >
-          <option value="">MM</option>
-          {minutes.map((m) => (
-            <option key={m} value={m}>
-              {m}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
   );
 }
 

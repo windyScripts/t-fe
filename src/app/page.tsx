@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchTimings, SafariTiming, SafariTicket } from "./lib/api";
 import { daysFrom, formatRange, startOfToday } from "./lib/dates";
 import { formatCurrency } from "./lib/format";
 import { useBooking } from "./providers/booking-context";
+import { DateTimeRow } from "./components/DateTimeParts";
+import Button from "./components/ui/Button";
 
 const ticketCopy = [
   {
@@ -23,19 +25,39 @@ const ticketCopy = [
 export default function Home() {
   const [timings, setTimings] = useState<SafariTiming[]>([]);
   const [page, setPage] = useState(1);
-  const limit = 9;
+  const [limit, setLimit] = useState(9);
+  const [startInput, setStartInput] = useState(() =>
+    startOfToday().toISOString().slice(0, 16)
+  );
+  const [endInput, setEndInput] = useState(() =>
+    daysFrom(startOfToday(), 7).toISOString().slice(0, 16)
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { updateSelection } = useBooking();
 
+  const startDate = useMemo(() => new Date(startInput), [startInput]);
+  const endDate = useMemo(() => new Date(endInput), [endInput]);
+  const inputsValid = useMemo(
+    () =>
+      !Number.isNaN(startDate.getTime()) &&
+      !Number.isNaN(endDate.getTime()) &&
+      startDate < endDate,
+    [startDate, endDate]
+  );
+
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
-        const start = startOfToday();
-        const end = daysFrom(start, 7);
-        const data = await fetchTimings({ start, end, limit, page });
+        if (!inputsValid) {
+          setError("Enter a valid start and end time (start must be before end).");
+          setTimings([]);
+          return;
+        }
+        setError(null);
+        const data = await fetchTimings({ start: startDate, end: endDate, limit, page });
         setTimings(data.results);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Unable to load timings.";
@@ -45,7 +67,7 @@ export default function Home() {
       }
     };
     load();
-  }, [limit, page]);
+  }, [limit, page, startDate, endDate, inputsValid]);
 
   const onSelect = (show: SafariTiming, ticket: SafariTicket) => {
     updateSelection({
@@ -79,18 +101,12 @@ export default function Home() {
               tickets, pick a safari window, and move to payment without friction.
             </p>
             <div className="flex flex-wrap gap-3">
-              <button
-                className="btn text-sm"
-                onClick={() => router.push("/book")}
-              >
+              <Button size="sm" onClick={() => router.push("/book")}>
                 Start booking
-              </button>
-              <button
-                className="btn btn-secondary text-sm"
-                onClick={() => router.push("/history")}
-              >
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => router.push("/history")}>
                 View history
-              </button>
+              </Button>
             </div>
           </div>
           <div className="glass p-4 w-full lg:w-96">
@@ -117,8 +133,45 @@ export default function Home() {
             <h2 className="text-xl font-semibold">Pick a time slot</h2>
           </div>
           <div className="text-sm text-[--muted]">
-            Auto-refreshes daily • 7-day window • Live availability
+            Auto-refreshes daily • configurable window • Live availability
           </div>
+        </div>
+        <div className="glass p-4 grid gap-3 md:grid-cols-4">
+          <DateTimeRow
+            label="Start"
+            value={startInput}
+            onChange={(v) => {
+              setStartInput(v);
+              setPage(1);
+            }}
+            min={startOfToday().toISOString().slice(0, 10)}
+          />
+          <DateTimeRow
+            label="End"
+            value={endInput}
+            onChange={(v) => {
+              setEndInput(v);
+              setPage(1);
+            }}
+            min={startOfToday().toISOString().slice(0, 10)}
+          />
+          <label className="text-sm flex flex-col gap-1">
+            <span className="text-[--muted]">Entries</span>
+            <select
+              className="glass px-3 py-2 focus-ring"
+              value={limit}
+              onChange={(e) => {
+                setLimit(Number(e.target.value) || 9);
+                setPage(1);
+              }}
+            >
+              {[6, 9, 12, 15, 20].map((v) => (
+                <option key={v} value={v}>
+                  {v}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         {loading && (
           <div className="glass p-6 flex items-center gap-3">
@@ -156,24 +209,25 @@ export default function Home() {
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <div>
-                            <p className="text-sm font-semibold capitalize">
-                              {ticket.ticketKind?.replace("_", " ") || "Regular"}
-                            </p>
-                            <p className="text-xs text-[--muted]">
-                              {ticket.remainingTickets} left · {formatCurrency(ticket.price)}
-                            </p>
-                          </div>
-                          <button
-                            disabled={ticket.soldOut}
-                            className="btn text-sm px-3 py-2 disabled:opacity-50"
-                            onClick={() => onSelect(show, ticket)}
-                          >
-                            {ticket.soldOut ? "Sold out" : "Book this"}
-                          </button>
+                        <div>
+                          <p className="text-sm font-semibold capitalize">
+                            {ticket.ticketKind?.replace("_", " ") || "Regular"}
+                          </p>
+                          <p className="text-xs text-[--muted]">
+                            {ticket.remainingTickets} left · {formatCurrency(ticket.price)}
+                          </p>
                         </div>
+                        <Button
+                          disabled={ticket.soldOut}
+                          size="sm"
+                          className="px-3 py-2 disabled:opacity-50"
+                          onClick={() => onSelect(show, ticket)}
+                        >
+                          {ticket.soldOut ? "Sold out" : "Book this"}
+                        </Button>
                       </div>
-                    ))}
+                    </div>
+                  ))}
                   </div>
                 </div>
               ))}
@@ -182,20 +236,22 @@ export default function Home() {
               )}
             </div>
             <div className="flex items-center justify-end gap-2">
-              <button
-                className="btn btn-secondary text-sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 disabled={page === 1 || loading}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
               >
                 Previous
-              </button>
-              <button
-                className="btn text-sm disabled:opacity-60"
+              </Button>
+              <Button
+                size="sm"
+                className="disabled:opacity-60"
                 disabled={timings.length < limit || loading}
                 onClick={() => setPage((p) => p + 1)}
               >
                 Next
-              </button>
+              </Button>
             </div>
           </div>
         )}
