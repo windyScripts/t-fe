@@ -6,6 +6,7 @@ import { fetchTimings, SafariTiming, SafariTicket } from "../lib/api";
 import { daysFrom, formatRange, startOfToday } from "../lib/dates";
 import { formatCurrency } from "../lib/format";
 import { useBooking } from "../providers/booking-context";
+import Button from "../components/ui/Button";
 
 export default function BookPage() {
   const router = useRouter();
@@ -180,22 +181,24 @@ export default function BookPage() {
             <div className="flex items-center justify-between">
               <span>Quantity</span>
               <div className="flex items-center gap-2">
-                <button
-                  className="pill px-3 py-1 text-sm font-semibold bg-[--accent-soft] text-[--accent-strong]"
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => handleQuantity(-1)}
                   aria-label="Decrease quantity"
                 >
                   –
-                </button>
+                </Button>
                 <span className="font-semibold min-w-6 text-center">{quantity}</span>
-                <button
-                  className="pill px-3 py-1 text-sm font-semibold bg-[--accent] text-white disabled:opacity-60"
+                <Button
+                  size="sm"
+                  className="px-3 py-1 disabled:opacity-60"
                   onClick={() => handleQuantity(1)}
                   aria-label="Increase quantity"
                   disabled={(currentTicket?.remainingTickets ?? Infinity) <= quantity}
                 >
                   +
-                </button>
+                </Button>
               </div>
             </div>
             <div className="fade-border" />
@@ -204,9 +207,9 @@ export default function BookPage() {
               <span className="font-semibold">{formatCurrency(total)}</span>
             </div>
           </div>
-          <button className="w-full btn font-semibold disabled:opacity-60" onClick={proceed} disabled={!showTicketId || !price}>
+          <Button className="w-full font-semibold disabled:opacity-60" onClick={proceed} disabled={!showTicketId || !price}>
             Continue to summary
-          </button>
+          </Button>
         </div>
       </div>
     </div>

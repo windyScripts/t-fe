@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AuthPanel from "../components/AuthPanel";
 import { BookingRecord, listBookings } from "../lib/api";
 import { useBooking } from "../providers/booking-context";
+import Button from "../components/ui/Button";
 
 export default function HistoryPage() {
   const { auth } = useBooking();
@@ -82,20 +83,22 @@ export default function HistoryPage() {
       </div>
       {auth.token && (
         <div className="flex items-center justify-end gap-2">
-          <button
-            className="btn btn-secondary text-sm"
+          <Button
+            variant="secondary"
+            size="sm"
             disabled={page === 1 || loading}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
             Previous
-          </button>
-          <button
-            className="btn text-sm disabled:opacity-60"
+          </Button>
+          <Button
+            size="sm"
+            className="disabled:opacity-60"
             disabled={bookings.length < limit || loading}
             onClick={() => setPage((p) => p + 1)}
           >
             Next
-          </button>
+          </Button>
         </div>
       )}
     </div>

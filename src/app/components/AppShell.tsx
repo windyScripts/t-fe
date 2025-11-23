@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useBooking } from "../providers/booking-context";
+import Button from "./ui/Button";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -65,27 +66,30 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
-          <button
+          <Button
             aria-label="Toggle light or dark theme"
             onClick={toggleTheme}
-            className="pill px-3 py-2 text-sm font-semibold bg-[--accent-soft] text-[--accent-strong] hover:opacity-90 transition-opacity"
+            variant="secondary"
+            size="sm"
+            className="hover:opacity-90"
           >
             {theme === "light" ? "☀️ Light" : "🌙 Dark"}
-          </button>
+          </Button>
           {auth.token ? (
             <div className="flex items-center gap-2 text-sm">
               <span className="hidden sm:inline text-[--muted]">
                 {auth.user?.name || "Signed in"}
               </span>
-              <button
-                className="btn btn-secondary text-sm font-semibold px-3 py-2"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   clearAuth();
                   router.push("/");
                 }}
               >
                 Log out
-              </button>
+              </Button>
             </div>
           ) : (
             <Link
