@@ -75,6 +75,20 @@ export default function SummaryPage() {
   };
 
   const missingSelection = !showTicketId;
+  const loginOnlyView = missingSelection && !auth.token;
+
+  if (loginOnlyView) {
+    return (
+      <div className="flex justify-center">
+        <div className="max-w-lg w-full space-y-3">
+          <AuthPanel title="Login to book" />
+          <p className="text-sm text-[--muted]">
+            Sign in first, then pick your safari slot on the booking page.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr] items-start">
@@ -93,7 +107,7 @@ export default function SummaryPage() {
             </p>
             <button
               className="pill px-4 py-2 bg-[--accent] text-white text-sm font-semibold mt-3"
-              onClick={() => router.push("/book")}
+              onClick={() => router.push("/")}
             >
               Go to booking
             </button>
@@ -169,7 +183,6 @@ export default function SummaryPage() {
             <p className="text-xs uppercase tracking-[0.14em] text-[--muted] mb-2">Signed in</p>
             <p className="font-semibold">{auth.user?.name || auth.user?.email}</p>
             <p className="text-sm text-[--muted]">{auth.user?.email}</p>
-            <p className="text-xs text-[--muted] mt-2">You can change details above if needed.</p>
           </div>
         )}
       </div>

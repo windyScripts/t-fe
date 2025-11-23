@@ -100,14 +100,6 @@ export default function Home() {
               Explore grasslands, teak forests, and wildlife in one pass. Book regular or priority
               tickets, pick a safari window, and move to payment without friction.
             </p>
-            <div className="flex flex-wrap gap-3">
-              <Button size="sm" onClick={() => router.push("/book")}>
-                Start booking
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => router.push("/history")}>
-                View history
-              </Button>
-            </div>
           </div>
           <div className="glass p-4 w-full lg:w-96">
             <p className="text-xs uppercase tracking-[0.14em] text-[--muted] mb-2">Ticket types</p>

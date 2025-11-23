@@ -1,4 +1,5 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:3001";
+import { notifyUnauthorized } from "./auth-events";
 
 type RequestOptions = RequestInit & { token?: string };
 
@@ -18,13 +19,19 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   const data = (await res.json().catch(() => ({}))) as unknown;
   if (!res.ok) {
+    const isAuthRequest = Boolean(token) || (!path.startsWith("/login") && !path.startsWith("/register"));
+    if ((res.status === 401 || res.status === 403) && isAuthRequest) {
+      notifyUnauthorized();
+    }
     const payload =
       typeof data === "object" && data !== null ? (data as Record<string, unknown>) : undefined;
     const message =
       (payload?.message as string | undefined) ??
       (payload?.error as string | undefined) ??
       `Request to ${path} failed`;
-    throw new Error(message);
+    const err = new Error(message) as Error & { status?: number };
+    err.status = res.status;
+    throw err;
   }
   if (typeof data !== "object" || data === null) {
     throw new Error("Malformed response from API.");

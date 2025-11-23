@@ -14,6 +14,7 @@ export default function AuthPanel({ title = "Sign in to continue" }: { title?: s
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -86,13 +87,39 @@ export default function AuthPanel({ title = "Sign in to continue" }: { title?: s
         </label>
         <label className="flex flex-col gap-1 text-sm">
           <span className="text-[--muted]">Password</span>
-          <input
-            className="glass px-3 py-2 focus-ring"
-            type="password"
-            placeholder="••••••••"
-            value={form.password}
-            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-          />
+          <div className="relative">
+            <input
+              className="glass w-full px-3 py-2 pr-12 focus-ring"
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              value={form.password}
+              onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+            />
+            <button
+              type="button"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute inset-y-0 right-2 px-2 text-[--muted] hover:text-[--accent]"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                <path
+                  d="M12 5c-5 0-9 5.2-9 7s4 7 9 7 9-5.2 9-7-4-7-9-7Zm0 11.2a4.2 4.2 0 1 1 0-8.4 4.2 4.2 0 0 1 0 8.4Z"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                />
+                {showPassword ? null : (
+                  <path
+                    d="M5 5l14 14"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                )}
+              </svg>
+            </button>
+          </div>
         </label>
         {error && <p className="text-sm text-red-600">{error}</p>}
         {message && <p className="text-sm text-[--accent]">{message}</p>}

@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { registerUnauthorizedHandler } from "../lib/auth-events";
 
 export type PaymentMethod = "upi" | "netbanking" | "card";
 
@@ -86,6 +87,11 @@ export default function BookingProvider({ children }: { children: React.ReactNod
   const clearAuth = () => {
     setAuthState({});
   };
+
+  useEffect(() => {
+    const unsubscribe = registerUnauthorizedHandler(() => setAuthState({}));
+    return unsubscribe;
+  }, []);
 
   const updateSelection = (payload: Partial<BookingState>) => {
     setState((prev) => {
